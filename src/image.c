@@ -431,6 +431,16 @@ void constrain_image(image im)
     }
 }
 
+void normalize_image_mask(image obj_mask, image bb_count)
+{
+    for(int i = 0; i< obj_mask.h*obj_mask.w*obj_mask.c; ++i)
+    {
+        if(bb_count.data[i] != 0.0 && obj_mask.data[i] !=0.0)
+        {
+            obj_mask.data[i] = obj_mask.data[i] / bb_count.data[i];
+        }
+    }
+}
 void normalize_image(image p)
 {
     int i;
@@ -671,9 +681,13 @@ void save_image_png(image im, const char *name)
     int i,k;
     for(k = 0; k < im.c; ++k){
         for(i = 0; i < im.w*im.h; ++i){
+            if(im.data[i + k*im.w*im.h] > 1.00) im.data[i + k*im.w*im.h] = 1.00;                 
+            if(im.data[i + k*im.w*im.h] < 0.00) im.data[i + k*im.w*im.h] = 0.00;                
             data[i*im.c+k] = (unsigned char) (255*im.data[i + k*im.w*im.h]);
+//            printf(" %u ",data[i*im.c+k]);
         }
     }
+//    printf("\n");
     int success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w*im.c);
     free(data);
     if(!success) fprintf(stderr, "Failed to write image %s\n", buff);
@@ -732,6 +746,17 @@ image make_random_image(int w, int h, int c)
     int i;
     for(i = 0; i < w*h*c; ++i){
         out.data[i] = (rand_normal() * .25) + .5;
+    }
+    return out;
+}
+
+image make_zero_image(int w, int h, int c)
+{
+    image out = make_empty_image(w,h,c);
+    out.data = calloc(h*w*c, sizeof(float));
+    int i;
+    for(i = 0; i < w*h*c; ++i){
+        out.data[i] = 0.000;
     }
     return out;
 }

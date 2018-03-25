@@ -622,6 +622,7 @@ void save_image_png(image im, const char *name);
 void get_next_batch(data d, int n, int offset, float *X, float *y);
 void grayscale_image_3c(image im);
 void normalize_image(image p);
+void normalize_image_mask(image obj_mask, image bb_count);
 void matrix_to_csv(matrix m);
 float train_network_sgd(network *net, data d, int n);
 void rgbgr_image(image im);
@@ -635,6 +636,7 @@ matrix csv_to_matrix(char *filename);
 float *network_accuracies(network *net, data d, int n);
 float train_network_datum(network *net);
 image make_random_image(int w, int h, int c);
+image make_zero_image(int w, int h, int c);
 
 void denormalize_connected_layer(layer l);
 void denormalize_convolutional_layer(layer l);

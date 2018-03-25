@@ -359,6 +359,54 @@ void validate_detector_flip(char *datacfg, char *cfgfile, char *weightfile, char
     fprintf(stderr, "Total Detection Time: %f Seconds\n", what_time_is_it_now() - start);
 }
 
+static inline int maxfun(float a, float b)
+{
+   if(a>b) return a;
+   else return b;
+}
+
+static void accumulate_pixel(image m, int x, int y, int c, float val)
+{
+    m.data[c*m.h*m.w + y*m.w + x] += val;
+}
+
+static void max_pixel(image m, int x, int y, int c, float val)
+{
+    if(val > m.data[c*m.h*m.w + y*m.w + x]) m.data[c*m.h*m.w + y*m.w + x] = val;
+}
+
+image create_object_masks(box *boxes, float **probs, int total, int w, int h, int classes, float thresh)
+{
+    image obj_mask = make_zero_image(w, h, 1);  
+    image bb_count = make_zero_image(w, h, 1);  
+    for(int i=0; i< total; ++i)
+    {
+
+        if(probs[i][0]>0.2)
+        {
+
+            float xmin = maxfun(boxes[i].x - boxes[i].w/2. + 1,0);
+            float xmax = maxfun(boxes[i].x + boxes[i].w/2. + 1,xmin);
+
+            for(int x= xmin; x< xmax; ++x)
+            {
+                float ymin = maxfun(boxes[i].y - boxes[i].h/2. + 1,0);
+                float ymax = maxfun(boxes[i].y + boxes[i].h/2. + 1,ymin);
+
+                for(int y= ymin; y< ymax; ++y)
+                {
+//                        accumulate_pixel(obj_mask, x, y, 0, probs[i][0]);
+//                        accumulate_pixel(bb_count, x, y, 0,1.0);
+
+                        max_pixel(obj_mask, x, y, 0, probs[i][0]);
+
+                }
+            }
+        }
+    }
+    normalize_image_mask(obj_mask, bb_count);
+    return obj_mask;
+}
 
 void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *outfile)
 {
@@ -463,6 +511,13 @@ void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *out
             int w = val[t].w;
             int h = val[t].h;
             get_region_boxes(l, w, h, net->w, net->h, thresh, probs, boxes, 0, 0, map, .5, 0);
+
+            //Object mask creation and save for RNN tracking
+            image obj_mask = create_object_masks(boxes, probs, l.w*l.h*l.n, w, h, classes, thresh);
+            char mask_im[1024];
+            snprintf(mask_im, 1024, "%s/%s/%s", prefix, "mask_imgs", id);
+            save_image(obj_mask,mask_im);
+
             if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, classes, nms);
             if (coco){
                 print_cocos(fp, path, boxes, probs, l.w*l.h*l.n, classes, w, h);
