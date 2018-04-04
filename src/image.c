@@ -750,13 +750,13 @@ image make_random_image(int w, int h, int c)
     return out;
 }
 
-image make_zero_image(int w, int h, int c)
+image make_const_filled_image(int w, int h, int c, float val)
 {
     image out = make_empty_image(w,h,c);
     out.data = calloc(h*w*c, sizeof(float));
     int i;
     for(i = 0; i < w*h*c; ++i){
-        out.data[i] = 0.000;
+        out.data[i] = val;
     }
     return out;
 }

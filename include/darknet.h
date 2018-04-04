@@ -636,7 +636,7 @@ matrix csv_to_matrix(char *filename);
 float *network_accuracies(network *net, data d, int n);
 float train_network_datum(network *net);
 image make_random_image(int w, int h, int c);
-image make_zero_image(int w, int h, int c);
+image make_const_filled_image(int w, int h, int c, float val);
 
 void denormalize_connected_layer(layer l);
 void denormalize_convolutional_layer(layer l);

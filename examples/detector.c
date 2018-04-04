@@ -377,8 +377,8 @@ static void max_pixel(image m, int x, int y, int c, float val)
 
 image create_object_masks(box *boxes, float **probs, int total, int w, int h, int classes, float thresh)
 {
-    image obj_mask = make_zero_image(w, h, 1);  
-    image bb_count = make_zero_image(w, h, 1);  
+    image obj_mask = make_const_filled_image(w, h, 1, 0.0);  
+    image bb_count = make_const_filled_image(w, h, 1, 1.0);  
     for(int i=0; i< total; ++i)
     {
 
@@ -395,10 +395,10 @@ image create_object_masks(box *boxes, float **probs, int total, int w, int h, in
 
                 for(int y= ymin; y< ymax; ++y)
                 {
-//                        accumulate_pixel(obj_mask, x, y, 0, probs[i][0]);
-//                        accumulate_pixel(bb_count, x, y, 0,1.0);
+                        accumulate_pixel(obj_mask, x, y, 0, probs[i][0]);
+                        accumulate_pixel(bb_count, x, y, 0,1.0);
 
-                        max_pixel(obj_mask, x, y, 0, probs[i][0]);
+//                        max_pixel(obj_mask, x, y, 0, probs[i][0]);
 
                 }
             }
